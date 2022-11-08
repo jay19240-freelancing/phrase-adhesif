@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "color_categories",
+  "info": {
+    "singularName": "color-category",
+    "pluralName": "color-categories",
+    "displayName": "Color Category"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    }
+  }
+}

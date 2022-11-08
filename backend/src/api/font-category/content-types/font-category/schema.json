@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "font_categories",
+  "info": {
+    "singularName": "font-category",
+    "pluralName": "font-categories",
+    "displayName": "Font Category"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "label": {
+      "type": "string"
+    }
+  }
+}

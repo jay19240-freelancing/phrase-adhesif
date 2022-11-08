@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="index.css" />
+  <title>Module typo</title>
+</head>
+
+<body>
+  <div class="creator">
+    <div class="creator-template">
+      <div class="creator-template-left">
+        <div class="creator-template-left-corner-top"></div>
+        <div class="creator-template-left-rules">
+          <ion-icon class="creator-template-left-rules-topArrow" name="caret-up-outline"></ion-icon>
+          <div id="metrics-height" class="creator-template-left-rules-metrics"></div>
+          <ion-icon class="creator-template-left-rules-rightArrow" name="caret-down-outline"></ion-icon>
+        </div>
+        <div class="creator-template-left-corner-bottom"></div>
+      </div>
+      <div class="creator-template-middle">
+        <div class="creator-template-middle-rules-0">
+          <ion-icon class="creator-template-middle-rules-0-leftArrow" name="caret-back-outline"></ion-icon>
+          <div id="metrics-width" class="creator-template-middle-rules-0-metrics"></div>
+          <ion-icon class="creator-template-middle-rules-0-rightArrow" name="caret-forward-outline"></ion-icon>
+        </div>
+        <canvas class="creator-template-middle-canvas" id="js-canvas"></canvas>
+        <div class="creator-template-middle-rules-1"></div>
+      </div>
+      <div class="creator-template-right">
+        <div class="creator-template-right-corner-top"></div>
+        <div class="creator-template-right-rules"></div>
+        <div class="creator-template-right-corner-bottom"></div>
+      </div>
+    </div>
+    <div class="creator-multi">
+      <button class="creator-multi-btn">Passer en mode multiligne</button>
+    </div>
+
+    <div class="creator-text-settings">
+      <input class="control-input" value="Votre texte" id="text-input" type="text" />
+    </div>
+
+    <div class="creator-rowset">
+      <div class="creator-rowset-item">
+        <div class="control">
+          <label class="control-label">Ecriture :</label>
+          <div id="font-select" class="control-select">
+            <span id="font-select-name">Sans Serif</span>
+            <ion-icon id="font-select-arrow" name="chevron-down-outline"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <div class="creator-rowset-item">
+        <div class="control">
+          <label class="control-label">Couleur :</label>
+          <div id="color-select" class="control-select">
+            <div id="color-select-circle" class="control-select-color"></div>
+            <span id="color-select-name">White</span>
+            <ion-icon id="color-select-arrow" name="chevron-down-outline"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+      <div class="creator-rowset-item">
+        <div class="control">
+          <label class="control-label">Options :</label>
+          <div id="options" class="control-options">
+            <div id="inversed" class="control-options-item">Inversé</div>
+            <div id="pochoir" class="control-options-item">Pochoir</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="color-selector" class="selector-colors"></div>
+    <div id="font-selector" class="selector-fonts"></div>
+
+    <div class="creator-rowset">
+      <div class="creator-rowset-item">
+        <div class="control">
+          <label class="control-label">Hauteur :</label>
+          <div id="height-options" class="control-options">
+            <div id="body" class="control-options-item">Corps de police</div>
+            <div id="strict" class="control-options-item">Hauteur stricte</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="creator-rowset-item">
+        <div class="control">
+          <label class="control-label">Taille :</label>
+          <div class="u-fx u-fx-align-items-center">
+            <input id="width-input" class="control-input control-input--w100" type="number">
+            <span>&nbsp;X&nbsp;</span>
+            <input id="height-input" class="control-input control-input--w100" type="number">
+            <span>&nbsp;cm</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="creator-rowset-item">
+        <div class="control">
+          <label data-step="6" class="control-label">Quantité :</label>
+          <div class="control-input">
+            <button id="remove" class="quantity-btn">-</button>
+            <span id="quantity-amount" class="amount">1</span>
+            <button id="add" class="quantity-btn">+</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="index.js"></script>
+  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+
+</html>
