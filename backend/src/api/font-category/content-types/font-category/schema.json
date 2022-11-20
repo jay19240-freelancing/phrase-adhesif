@@ -4,7 +4,8 @@
   "info": {
     "singularName": "font-category",
     "pluralName": "font-categories",
-    "displayName": "Font Category"
+    "displayName": "Catégorie d'écritures",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true

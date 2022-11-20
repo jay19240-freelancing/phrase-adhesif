@@ -84,6 +84,37 @@ body {
   color: #fff;
 }
 
+.control-options-item.disabled {
+  opacity:0.5;
+  pointer-events: none;
+}
+
+.control-checkbox {
+  display:block;
+  position: relative;
+  width:40px;
+  height: 40px;
+  background: #EDEDED;
+  border: 1px solid #ddd;
+  cursor:pointer;
+}
+
+.control-checkbox::after {
+  content: ' ';
+  display: none;
+  position:absolute;
+  width: 30px;
+  height: 30px;
+  top:50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #5e5e5e;
+}
+
+.control-checkbox.active::after {
+  display: block;
+}
+
 /*
  * UTILS
  */
@@ -113,6 +144,7 @@ body {
   background: #f9f9f9;
   border-bottom: 1px solid #ddd;
   padding: 5px 10px;
+  overflow-x: hidden;
 }
 
 .creator-template-left {
@@ -236,7 +268,9 @@ body {
   border: 0;
   cursor: pointer;
 }
-
+.creator-multi-btn.active {
+  background-color: #e5f3ff;
+}
 .creator-multi-btn:hover {
   background-color: #2ea1ff;
   color: #fff;

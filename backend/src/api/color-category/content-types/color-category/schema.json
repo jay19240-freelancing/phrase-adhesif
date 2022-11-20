@@ -4,7 +4,8 @@
   "info": {
     "singularName": "color-category",
     "pluralName": "color-categories",
-    "displayName": "Color Category"
+    "displayName": "Catégorie de couleurs",
+    "description": ""
   },
   "options": {
     "draftAndPublish": true

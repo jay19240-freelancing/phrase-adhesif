@@ -13,7 +13,7 @@
     <div class="creator-template">
       <div class="creator-template-left">
         <div class="creator-template-left-corner-top"></div>
-        <div class="creator-template-left-rules">
+        <div id="rule-left" class="creator-template-left-rules">
           <ion-icon class="creator-template-left-rules-topArrow" name="caret-up-outline"></ion-icon>
           <div id="metrics-height" class="creator-template-left-rules-metrics"></div>
           <ion-icon class="creator-template-left-rules-rightArrow" name="caret-down-outline"></ion-icon>
@@ -21,7 +21,7 @@
         <div class="creator-template-left-corner-bottom"></div>
       </div>
       <div class="creator-template-middle">
-        <div class="creator-template-middle-rules-0">
+        <div id="rule-top" class="creator-template-middle-rules-0">
           <ion-icon class="creator-template-middle-rules-0-leftArrow" name="caret-back-outline"></ion-icon>
           <div id="metrics-width" class="creator-template-middle-rules-0-metrics"></div>
           <ion-icon class="creator-template-middle-rules-0-rightArrow" name="caret-forward-outline"></ion-icon>
@@ -35,12 +35,14 @@
         <div class="creator-template-right-corner-bottom"></div>
       </div>
     </div>
+
     <div class="creator-multi">
-      <button class="creator-multi-btn">Passer en mode multiligne</button>
+      <button id="multiline-btn" class="creator-multi-btn">Passer en mode multiligne</button>
     </div>
 
     <div class="creator-text-settings">
       <input class="control-input" value="Votre texte" id="text-input" type="text" />
+      <textarea class="control-input" id="text-area">Votre texte</textarea>
     </div>
 
     <div class="creator-rowset">
@@ -80,12 +82,33 @@
     <div id="font-selector" class="selector-fonts"></div>
 
     <div class="creator-rowset">
-      <div class="creator-rowset-item">
+      <div id="height-module" class="creator-rowset-item">
         <div class="control">
           <label class="control-label">Hauteur :</label>
           <div id="height-options" class="control-options">
             <div id="body" class="control-options-item">Corps de police</div>
             <div id="strict" class="control-options-item">Hauteur stricte</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="align-module" class="creator-rowset-item">
+        <div class="control">
+          <label class="control-label">Alignement :</label>
+          <div id="align-options" class="control-options">
+            <div id="left" class="control-options-item">Gauche</div>
+            <div id="center" class="control-options-item">Centre</div>
+            <div id="right" class="control-options-item">Droite</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="aspect-module" class="creator-rowset-item">
+        <div class="control">
+          <label class="control-label">Aspect conservé :</label>
+          <div id="aspect-options" class="control-options">
+            <div id="yes" class="control-options-item">Oui</div>
+            <div id="no" class="control-options-item">Non</div>
           </div>
         </div>
       </div>
@@ -112,7 +135,6 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 

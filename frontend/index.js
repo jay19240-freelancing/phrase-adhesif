@@ -1,30 +1,49 @@
+// - Ajouter multi-ligne
+
 const HOST_URL = 'http://localhost:1337';
 const API_URL = HOST_URL + '/api';
-const PX_TO_CM = 0.0352;
-const SIZE_BASE = 250;
+const PX_TO_CM = 0.0375;
 const DEVICE_PIXEL_RATIO = 2;
+const CANVAS_HEIGHT = 80;
 
 let selectedColor = null
 let selectedFont = null
 let selectedOptions = [];
 let selectedHeightOption = null;
+let selectedAspectOption = null;
+let selectedAlignOption = null;
+let selectedQuantity = 1;
+let enabledMultiline = false;
 
 let colorCategories = [];
 let colors = [];
 
 let fontCategories = [];
 let fonts = [];
+let prices = [];
 
-let homotheticScale = 1;
-let width = 0;
-let height = 0;
+let widthCanvas = 0;
+let heightCanvas = 0;
+let aspectScale = 1;
 
 const canvas = document.getElementById('js-canvas')
 const ctx = canvas.getContext('2d')
+
+const multilineBtn = document.getElementById('multiline-btn');
+
+const ruleTop = document.getElementById('rule-top');
+const ruleLeft = document.getElementById('rule-left');
+
 const metricsHeight = document.getElementById('metrics-height')
 const metricsWidth = document.getElementById('metrics-width')
 
 const textInput = document.getElementById('text-input')
+const textArea = document.getElementById('text-area');
+
+const aspectModule = document.getElementById('aspect-module');
+const heightModule = document.getElementById('height-module');
+const alignModule = document.getElementById('align-module');
+
 const heightInput = document.getElementById('height-input')
 const widthInput = document.getElementById('width-input')
 
@@ -38,56 +57,47 @@ const colorSelectArrow = document.getElementById('color-select-arrow')
 const colorSelectName = document.getElementById('color-select-name')
 const colorSelectCircle = document.getElementById('color-select-circle')
 const colorSelector = document.getElementById('color-selector')
+const keepAspectCheckbox = document.getElementById('keep-aspect-checkbox');
 
 const quantityBtns = document.querySelectorAll('.quantity-btn')
 const quantityAmount = document.getElementById('quantity-amount')
 
-/* -- quantity -- */
-/*********************************************************************************** */
-let selectedQuantity = 1
-
-const quantityBtnHandler = (btn) => {
-  if (btn.target.id === 'remove') {
-    if (selectedQuantity <= 1) {
-      return
-    }
-
-    selectedQuantity--
-    return (quantityAmount.innerText = selectedQuantity)
-  }
-
-  selectedQuantity++
-  return (quantityAmount.innerText = selectedQuantity)
-}
+const options = document.querySelectorAll('#options .control-options-item')
+const heightOptions = document.querySelectorAll('#height-options .control-options-item')
+const aspectOptions = document.querySelectorAll('#aspect-options .control-options-item')
+const alignOptions = document.querySelectorAll('#align-options .control-options-item')
 
 /* -- start of buisness -- */
 /*********************************************************************************** */
 const boot = async () => {
-  canvas.style.width = SIZE_BASE + 'px'
-  canvas.style.height = SIZE_BASE + 'px'
-  canvas.width = Math.floor(SIZE_BASE * DEVICE_PIXEL_RATIO)
-  canvas.height = Math.floor(SIZE_BASE * DEVICE_PIXEL_RATIO)
-
   await initColorCategories();
   await initColors();
   await initFontCategories();
   await initFonts();
+  await initPrices();
 
+  multilineBtn.addEventListener('click', () => enableMultiline(!enabledMultiline));
   colorSelect.addEventListener('click', handleColorSelectClicked)
   fontSelect.addEventListener('click', handleFontSelectClicked)
 
   for (const quantityBtn of quantityBtns) {
-    quantityBtn.addEventListener('click', quantityBtnHandler)
+    quantityBtn.addEventListener('click', (e) => handleQuantityClicked(e))
   }
 
-  const options = document.querySelectorAll('#options .control-options-item')
   for (const option of options) {
     option.addEventListener('click', (e) => selectOption(e.target.id));
   }
 
-  const heightOptions = document.querySelectorAll('#height-options .control-options-item')
   for (const option of heightOptions) {
     option.addEventListener('click', (e) => selectHeightOption(e.target.id));
+  }
+
+  for (const option of aspectOptions) {
+    option.addEventListener('click', (e) => selectAspectOption(e.target.id));
+  }
+
+  for (const option of alignOptions) {
+    option.addEventListener('click', (e) => selectAlignOption(e.target.id));
   }
 
   widthInput.addEventListener('keyup', handleWidthInputChanged);
@@ -98,6 +108,9 @@ const boot = async () => {
   selectColor(colors[0].id);
   selectFont(fonts[0].id);
   selectHeightOption('body');
+  selectAspectOption('yes');
+  selectAlignOption('left');
+  enableMultiline(false);
 }
 
 const initColorCategories = async () => {
@@ -160,8 +173,16 @@ const initFonts = async () => {
   }
 }
 
+const initPrices = async () => {
+  const res = await fetch(`${API_URL}/prices`);
+  const json = await res.json();
+  prices = json.data;
+}
+
 const run = () => {
-  update();
+  updateSingleLine();
+  updateMultiLine();
+  updateIndicators();
   window.requestAnimationFrame(run);
 }
 
@@ -197,6 +218,13 @@ const selectColor = (colorID) => {
     prevColor.classList.toggle('active')
   }
 
+  if (color.attributes.type == 'light') {
+    canvas.classList.add('bg-black');
+  }
+  else {
+    canvas.classList.remove('bg-black');
+  }
+
   document.getElementById('color-' + colorID).classList.add('active')
   colorSelectName.innerText = color.attributes.label
   colorSelectCircle.style.backgroundColor = color.attributes.color;
@@ -229,14 +257,71 @@ const selectHeightOption = (optionID) => {
   document.getElementById(optionID).classList.add('active')
 }
 
+const selectAspectOption = (optionID) => {
+  if (selectedAspectOption) {
+    const optionEl = document.getElementById(selectedAspectOption)
+    optionEl.classList.remove('active');
+  }
+
+  selectedAspectOption = optionID;
+  document.getElementById(optionID).classList.add('active')
+}
+
+const selectAlignOption = (optionID) => {
+  if (selectedAlignOption) {
+    const optionEl = document.getElementById(selectedAlignOption)
+    optionEl.classList.remove('active');
+  }
+
+  selectedAlignOption = optionID;
+  document.getElementById(optionID).classList.add('active')
+}
+
+const enableMultiline = (enable) => {
+  if (enable) {
+    multilineBtn.classList.toggle('active');
+    heightModule.style.display = 'none';
+    aspectModule.style.display = 'none';
+    alignModule.style.display = 'block';
+    textInput.style.display = 'none';
+    textArea.style.display = 'block';
+    enabledMultiline = true;
+    selectHeightOption('strict');
+  }
+  else {
+    multilineBtn.classList.toggle('active');
+    heightModule.style.display = 'block';
+    aspectModule.style.display = 'block';
+    alignModule.style.display = 'none';
+    textInput.style.display = 'block';
+    textArea.style.display = 'none';
+    enabledMultiline = false;
+    selectHeightOption('body');
+  }
+}
+
 const handleWidthInputChanged = () => {
-  const wcm = width * PX_TO_CM;
-  homotheticScale = widthInput.value / wcm;
+  if (selectedAspectOption == 'yes') {
+    const aabb = canvas.getBoundingClientRect();
+    const wcm = aabb.width * PX_TO_CM;
+    aspectScale = widthInput.value / wcm;
+  }
+  else {
+    const scaleDown = canvas.height / (heightInput.value / PX_TO_CM);
+    widthCanvas = (widthInput.value / PX_TO_CM) * scaleDown;
+  }
 }
 
 const handleHeightInputChanged = () => {
-  const hcm = height * PX_TO_CM;
-  homotheticScale = heightInput.value / hcm;
+  if (selectedAspectOption == 'yes') {
+    const aabb = canvas.getBoundingClientRect();
+    const hcm = aabb.height * PX_TO_CM;
+    aspectScale = heightInput.value / hcm;
+  }
+  else {
+    const scaleDown = canvas.height / (heightInput.value / PX_TO_CM);
+    widthCanvas = (widthInput.value / PX_TO_CM) * scaleDown;
+  }
 }
 
 const handleColorSelectClicked = () => {
@@ -249,20 +334,43 @@ const handleFontSelectClicked = () => {
   fontSelectArrow.classList.toggle('activated')
 }
 
-const update = () => {
+const handleQuantityClicked = (e) => {
+  if (e.target.id === 'remove' && selectedQuantity <= 1) {
+    return
+  }
+
+  if (e.target.id === 'remove') {
+    selectedQuantity--
+  }
+  else {
+    selectedQuantity++
+  }
+
+  quantityAmount.innerText = selectedQuantity
+}
+
+const updateSingleLine = () => {
+  if (enabledMultiline) {
+    return;
+  }
+
+  ctx.save();
+
   const text = textInput.value.trim();
   const metrics = ctx.measureText(text);
+  const actualTextHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+  const fontTextHeight = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+  const actualToFontHeight = fontTextHeight / actualTextHeight
 
-  const actualHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
-  const heightDeltaFactor = height / actualHeight;
+  if (selectedAspectOption == 'yes') {
+    heightCanvas = fontTextHeight;
+    widthCanvas = selectedHeightOption == 'body' ? metrics.width : metrics.width * actualToFontHeight;
+  }
 
-  width = selectedHeightOption == 'body' ? metrics.width : metrics.width * heightDeltaFactor;
-  height = metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent ?? fontSize
-
-  canvas.width = width;
-  canvas.height = height;
-  canvas.style.width = width / DEVICE_PIXEL_RATIO + 'px';
-  canvas.style.height = height / DEVICE_PIXEL_RATIO + 'px';
+  canvas.width = widthCanvas;
+  canvas.height = heightCanvas;
+  canvas.style.width = canvas.width * (CANVAS_HEIGHT / heightCanvas) + 'px';
+  canvas.style.height = CANVAS_HEIGHT + 'px';
 
   const fontFamily = selectedFont ? selectedFont.attributes.label : 'Arial';
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -270,29 +378,26 @@ const update = () => {
   ctx.textBaseline = 'top';
   ctx.textAlign = 'left';
 
-  ctx.save();
-
-  if (selectedHeightOption == 'body') {
-    const actualHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
-    const actualY = (height - actualHeight) / 2;
+  if (selectedAspectOption == 'yes' && selectedHeightOption == 'body') {
+    const actualTextY = (canvas.height - actualTextHeight) / 2;
 
     ctx.beginPath();
-    ctx.moveTo(0, actualY);
-    ctx.lineTo(width, actualY);
+    ctx.moveTo(0, actualTextY);
+    ctx.lineTo(canvas.width, actualTextY);
     ctx.lineWidth = 5;
     ctx.strokeStyle = '#ff0000';
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(0, actualY + actualHeight);
-    ctx.lineTo(width, actualY + actualHeight);
+    ctx.moveTo(0, actualTextY + actualTextHeight);
+    ctx.lineTo(canvas.width, actualTextY + actualTextHeight);
     ctx.lineWidth = 5;
     ctx.strokeStyle = '#ff0000';
     ctx.stroke();
   }
 
   if (selectedOptions.includes('inversed')) {
-    ctx.translate(width, 0)
+    ctx.translate(canvas.width, 0)
     ctx.scale(-1, 1)
   }
 
@@ -303,32 +408,129 @@ const update = () => {
     ctx.fillStyle = selectedColor ? selectedColor.attributes.color : '#000';
   }
 
-  if (selectedHeightOption == 'body') {
-    const actualHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
-    ctx.fillText(text, 0, metrics.actualBoundingBoxAscent + (height - actualHeight) / 2);
+  if (selectedAspectOption == 'no') {
+    ctx.scale(canvas.width / metrics.width, actualToFontHeight);
+    ctx.fillText(text, 0, metrics.actualBoundingBoxAscent);
+  }
+  else if (selectedHeightOption == 'body') {
+    ctx.fillText(text, 0, metrics.actualBoundingBoxAscent + ((canvas.height - actualTextHeight) / 2));
   }
   else {
-    // const actualHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
-
-    console.log(heightDeltaFactor);
-
-    ctx.scale(heightDeltaFactor, heightDeltaFactor);
-    ctx.fillText(text, 0, metrics.actualBoundingBoxAscent - metrics.fontBoundingBoxAscent);
+    ctx.scale(actualToFontHeight, actualToFontHeight);
+    ctx.fillText(text, 0, metrics.actualBoundingBoxAscent);
   }
 
   ctx.restore();
+}
 
-  const h = Number.parseFloat(height * homotheticScale * PX_TO_CM).toFixed(1);
-  const w = Number.parseFloat(width * homotheticScale * PX_TO_CM).toFixed(1);
-  metricsHeight.innerText = h + ' cm';
-  metricsWidth.innerText = w + ' cm';
-
-  if (document.activeElement != widthInput) {
-    widthInput.value = Number.parseFloat(width * homotheticScale * PX_TO_CM).toFixed(1);
+const updateMultiLine = () => {
+  if (!enabledMultiline) {
+    return;
   }
 
-  if (document.activeElement != heightInput) {
-    heightInput.value = Number.parseFloat(height * homotheticScale * PX_TO_CM).toFixed(1);
+  ctx.save();
+
+  let texts = textArea.value.split('\n');
+  texts = texts.filter(t => t != '');
+
+  let totalWidth = 0;
+  let totalHeight = 0;
+
+  for (let i = 0; i < texts.length; i++) {
+    const metrics = ctx.measureText(texts[i])
+    totalHeight += (i == texts.length - 1) ? metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent : metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+    totalWidth = (metrics.width > totalWidth) ? metrics.width : totalWidth;
+  }
+
+  if (selectedAspectOption == 'yes') {
+    heightCanvas = totalHeight;
+    widthCanvas = totalWidth;
+  }
+
+  canvas.width = widthCanvas;
+  canvas.height = heightCanvas;
+
+  // canvasElementHeight / heightCanvas is used to convert width to conform with fixed canvas height ref (80px for each line)
+  const canvasElementHeight = CANVAS_HEIGHT * texts.length;
+  canvas.style.width = canvas.width * (canvasElementHeight / heightCanvas) + 'px';
+  canvas.style.height = canvasElementHeight + 'px';
+
+  const fontFamily = selectedFont ? selectedFont.attributes.label : 'Arial';
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.font = '160px ' + fontFamily;
+  ctx.textBaseline = 'top';
+  ctx.textAlign = selectedAlignOption;
+
+  if (selectedOptions.includes('inversed')) {
+    ctx.translate(canvas.width, 0)
+    ctx.scale(-1, 1)
+  }
+
+  if (selectedOptions.includes('pochoir')) {
+    ctx.fillStyle = '#fff';
+  }
+  else {
+    ctx.fillStyle = selectedColor ? selectedColor.attributes.color : '#000';
+  }
+
+  let x = 0;
+  let y = 0;
+
+  for (let i = 0; i < texts.length; i++) {
+    const metrics = ctx.measureText(texts[i]);
+
+    if (selectedAlignOption == 'left') {
+      x = 0;
+    }
+    else if (selectedAlignOption == 'center') {
+      x = canvas.width / 2;
+    }
+    else {
+      x = canvas.width;
+    }
+
+    ctx.fillText(texts[i], x, y + metrics.actualBoundingBoxAscent);
+    y += metrics.fontBoundingBoxAscent + metrics.fontBoundingBoxDescent;
+  }
+
+  ctx.restore();
+}
+
+const updateIndicators = () => {
+  ruleTop.style.width = canvas.style.width;
+  ruleLeft.style.height = canvas.style.height;
+
+  if (selectedAspectOption == 'yes' && document.activeElement != widthInput) {
+    const aabb = canvas.getBoundingClientRect();
+    widthInput.value = Number.parseFloat(aabb.width * aspectScale * PX_TO_CM).toFixed(2);
+  }
+
+  if (selectedAspectOption == 'yes' && document.activeElement != heightInput) {
+    const aabb = canvas.getBoundingClientRect();
+    heightInput.value = Number.parseFloat(aabb.height * aspectScale * PX_TO_CM).toFixed(2);
+  }
+
+  metricsHeight.innerText = heightInput.value + ' cm';
+  metricsWidth.innerText = widthInput.value + ' cm';
+}
+
+const getCheckout = () => {
+  const cmSquared = widthInput.value * heightInput.value;
+  const priceFound = prices.find(p => cmSquared >= p.attributes.cmeter_surface_min && cmSquared <= p.attributes.cmeter_surface_max);
+  if (!priceFound) {
+    throw new Error('Price slice not found !');
+  }
+
+  return {
+    text: textInput.value,
+    color: selectedColor.attributes.color,
+    width: widthInput.value,
+    height: heightInput.value,
+    heightOption: selectedHeightOption,
+    aspectOption: selectedAspectOption,
+    options: selectedOptions,
+    quantity: selectedQuantity,
+    price: Number(cmSquared * priceFound.attributes.cmeter_square_price * selectedQuantity).toFixed(2)
   }
 }
 
